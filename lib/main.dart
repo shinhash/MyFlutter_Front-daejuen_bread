@@ -8,7 +8,7 @@ import 'package:flutter_naver_map/flutter_naver_map.dart';
 void main() async {
   await _naverMapInitialize();
   runApp(
-    const MaterialApp(
+    MaterialApp(
       home: HomeScreen(),
     ),
   );

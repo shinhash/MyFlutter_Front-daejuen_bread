@@ -1,22 +1,25 @@
-import 'dart:async';
 import 'dart:convert';
+import 'package:logger/logger.dart';
+import 'package:daejuen_bread/const/naver_map_const.dart';
 import 'package:http/http.dart' as http;
 
-class Service {
-  Future<http.Response> getTest(String reqValue) async {
+var logger = Logger();
 
-    print('this method is getTest()');
-    /// android mobile localhost is 10.0.2.2
-    var uri = Uri.parse('http://10.0.2.2:8088/bread/main');
-    Map<String, String> headers = {'Content-Type':'application/json'};
+class BreadApi {
 
-    Map data = {
-      'reqInfo': '${reqValue}',
-    };
-    var body = json.encode(data);
-    var response = await http.post(uri, headers: headers, body: body);
-    print('response : ${response.body}');
+  breadService({required String url, required Map sendData}) async {
+    var httpResult;
+    try{
+      var uri = Uri.parse('${breadIpPort.toString()}${url.toString()}');
+      Map<String, String> headers = {'Content-Type':'application/json'};
+      var jsonBody = json.encode(sendData);
+      var response = await http.post(uri, headers: headers, body: jsonBody);
 
-    return response;
+      if(response.statusCode == 200) httpResult = jsonDecode(utf8.decode(response.bodyBytes));
+
+    } catch(e){
+      logger.e(e);
+    }
+    return httpResult;
   }
 }

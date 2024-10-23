@@ -1,9 +1,11 @@
 import 'dart:async';
-import 'package:daejuen_bread/const/naver_map_const.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_naver_map/flutter_naver_map.dart';
+import 'package:daejuen_bread/const/naver_map_const.dart';
+import 'package:logger/logger.dart';
 
 final myLocation = NLatLng(myLocLat, myLocLng);
+var logger = Logger();
 
 class BreadMapScreen extends StatefulWidget {
   const BreadMapScreen({super.key});
@@ -15,16 +17,11 @@ class BreadMapScreen extends StatefulWidget {
 class _BreadMapScreenState extends State<BreadMapScreen> {
   final Completer<NaverMapController> naverMapController = Completer();
 
-  final dropDownValueList = ['동구', '서구', '중구', '유성구', '대덕구'];
-  String selectedDropDownValue = '동구';
-
-  @override
-  void initState() {
-    super.initState();
-  }
-
   @override
   Widget build(BuildContext context) {
+    final dynamic arguments = ModalRoute.of(context)?.settings.arguments;
+    final areaBreadList = arguments['areaBreadList'];
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('대전 빵지순례'),
@@ -37,21 +34,43 @@ class _BreadMapScreenState extends State<BreadMapScreen> {
           options: NaverMapViewOptions(
             initialCameraPosition: NCameraPosition(
               target: myLocation,
-              zoom: 18,
+              zoom: 14,
             ),
             indoorEnable: true,
-            locationButtonEnable: true,
-            consumeSymbolTapEvents: true,
+            locationButtonEnable: false,
+            consumeSymbolTapEvents: false,
           ),
           onMapReady: (NaverMapController controller) async {
-            final marker_home = NMarker(id: "loc001", position: myLocation);
-            controller.addOverlayAll({marker_home});
+            Set<NMarker> breadMakerSet = {};
 
-            final onMakerInfoWindow = NInfoWindow.onMarker(id: marker_home.info.id, text: '대전 집(파라도르)');
-            marker_home.openInfoWindow(onMakerInfoWindow);
+            /// create to makerSet
+            for (Map<String, dynamic> breadStore in areaBreadList) {
+              int id = int.parse(breadStore['STORE_ID'].toString());
+              double lat = double.parse(breadStore['LAT'].toString());
+              double lng = double.parse(breadStore['LNG'].toString());
 
+              final locInfo = NLatLng(lat, lng);
+              final maker = NMarker(id: id.toString(), position: locInfo);
+              breadMakerSet.add(maker);
+            }
+
+            /// map controller insert to makerSet
+            controller.addOverlayAll(breadMakerSet);
+
+            /// makerSet setting to makerWindow
+            for(Map<String, dynamic> breadStore in areaBreadList){
+              breadMakerSet.forEach((maker){
+                if(maker.info.id == breadStore['STORE_ID'].toString()){
+                  final onMakerInfoWindow = NInfoWindow.onMarker(
+                    id: maker.info.id,
+                    text: breadStore['COMPONY_NM'].toString(),
+                  );
+                  maker.openInfoWindow(onMakerInfoWindow);
+                }
+              });
+            }
             naverMapController.complete(controller);
-            print('onMapReady');
+            logger.d('onMapReady');
           },
         ),
       ),
