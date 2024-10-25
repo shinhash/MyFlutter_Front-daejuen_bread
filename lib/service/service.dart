@@ -8,15 +8,14 @@ var logger = Logger();
 class BreadApi {
 
   breadService({required String url, required Map sendData}) async {
-    var httpResult;
+    List<Map<String, dynamic>> httpResult = [];
     try{
       var uri = Uri.parse('${breadIpPort.toString()}${url.toString()}');
       Map<String, String> headers = {'Content-Type':'application/json'};
       var jsonBody = json.encode(sendData);
       var response = await http.post(uri, headers: headers, body: jsonBody);
 
-      if(response.statusCode == 200) httpResult = jsonDecode(utf8.decode(response.bodyBytes));
-
+      if(response.statusCode == 200) httpResult = List.from(jsonDecode(utf8.decode(response.bodyBytes)) as List);
     } catch(e){
       logger.e(e);
     }

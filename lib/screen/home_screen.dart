@@ -13,16 +13,23 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final affLocNmList = ['동구', '서구', '중구', '유성구', '대덕구'];
-  String affLocNm = '동구';
-  late final breadRegionList;
-  late String breadRegionCd;
-  late final breadAreaList;
+
+  /// bread region info
+  late final List<Map<String, dynamic>> breadRegionList;
+  List<String> breadRegionItems = [];
+  String breadRegionCd = '';
+  String breadRegionNm = '';
+
+  /// bread area info
+  late final List<Map<String, dynamic>> breadAreaList;
+  List<String> breadAreaItems = [];
+  String breadAreaCd = '';
+  String breadAreaNm = '';
 
   @override
   void initState() {
     super.initState();
-    initBreadRegion();
+    regionAreaInitialize();
   }
 
   @override
@@ -36,8 +43,37 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       body: Column(
         mainAxisAlignment: MainAxisAlignment.center,
-        // crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              const Text('시 : '),
+              DropdownButton(
+                value: breadRegionNm,
+                items: breadRegionItems.map((item) => DropdownMenuItem(value: item, child: Text(item))).toList(),
+                onChanged: (value) {
+                  setState(() {
+                    dropDownItemChange(dropDownMenu: 'region', value: value.toString());
+                  });
+                },
+              ),
+
+
+              const Text('구 : '),
+              DropdownButton(
+                value: breadAreaNm,
+                items: breadAreaItems.map((item) => DropdownMenuItem(value: item, child: Text(item))).toList(),
+                onChanged: (value) {
+                  setState(() {
+                    dropDownItemChange(dropDownMenu: 'area', value: value.toString());
+                  });
+                },
+              ),
+            ],
+          ),
+
+
           Expanded(
             child: Center(
               child: Image.asset(
@@ -45,40 +81,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
           ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              Text('시 : '),
-              // FutureBuilder(
-              //   future: initBreadRegion(),
-              //   builder: (context, snapshot){
-              //     return DropdownButton(
-              //       value: breadRegionCd,
-              //       items: breadRegionList
-              //           .map((item) => DropdownMenuItem(
-              //           value: item['REGION_CD'],
-              //           child: Text(item['REGION_NM'])))
-              //           .toList(),
-              //       onChanged: (value) {
-              //         setState(() {
-              //           breadRegionCd = value.toString();
-              //         });
-              //       },
-              //     );
-              //   },
-              // ),
-              Text('구 : '),
-              DropdownButton(
-                value: affLocNm,
-                items: affLocNmList.map((item) => DropdownMenuItem(value: item, child: Text(item))).toList(),
-                onChanged: (value) {
-                  setState(() {
-                    affLocNm = value.toString();
-                  });
-                },
-              ),
-            ],
-          ),
+
           Padding(
             padding: const EdgeInsets.symmetric(
               horizontal: 16.0,
@@ -91,20 +94,19 @@ class _HomeScreenState extends State<HomeScreen> {
               child: const Text('빵집 찾기'),
               onPressed: () async {
                 /// spring boot bread api connection
-                Map sendData = {'areaCd': 'DA001'};
-                final httpResult = await BreadApi()
-                    .breadService(url: '/bread/store/list', sendData: sendData);
-
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (BuildContext context) {
-                      return const BreadMapScreen();
-                    },
-                    settings: RouteSettings(
-                      arguments: {'areaBreadList': httpResult},
-                    ),
-                  ),
-                );
+                Map sendData = {'regionCd': breadRegionCd, 'areaCd': breadAreaCd};
+                final breadStoreList = await BreadApi().breadService(url: '/bread/store/list', sendData: sendData);
+                logger.d('breadStoreList : ${breadStoreList}');
+                // Navigator.of(context).push(
+                //   MaterialPageRoute(
+                //     builder: (BuildContext context) {
+                //       return const BreadMapScreen();
+                //     },
+                //     settings: RouteSettings(
+                //       arguments: {'areaBreadList': breadStoreList},
+                //     ),
+                //   ),
+                // );
               },
             ),
           ),
@@ -113,12 +115,58 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  initBreadRegion() async {
-    breadRegionCd = '';
+  /// 도시,지역 조회
+  regionAreaInitialize() async {
+    breadRegionList = await BreadApi().breadService(url: '/bread/region/list', sendData: {});
+    breadAreaList = await BreadApi().breadService(url: '/bread/area/list', sendData: {});
+    dropDownItemChange(dropDownMenu: 'region', value: '');
+  }
 
-    final httpResult =
-        await BreadApi().breadService(url: '/bread/region/list', sendData: {});
-    breadRegionList = httpResult;
-    print('breadRegionList : ${breadRegionList}');
+  /// region, area info change function
+  dropDownItemChange({required String dropDownMenu, required String value}){
+    switch(dropDownMenu){
+      case 'region':
+        if(breadRegionItems.isEmpty){
+          for(Map mapInfo in breadRegionList){
+            if(breadRegionItems.isEmpty){
+              breadRegionCd = mapInfo['REGION_CD'];
+              breadRegionNm = mapInfo['REGION_NM'];
+            }
+            breadRegionItems.add(mapInfo['REGION_NM']);
+          }
+        }else{
+          for(Map mapInfo in breadRegionList) {
+            if(value == mapInfo['REGION_NM']) {
+              breadRegionCd = mapInfo['REGION_CD'];
+              breadRegionNm = mapInfo['REGION_NM'];
+            }
+          }
+        }
+
+        breadAreaItems = [];
+        for(Map mapInfo in breadAreaList){
+          if(mapInfo['REGION_CD'] == breadRegionCd){
+            if(breadAreaItems.isEmpty){
+              breadAreaCd = mapInfo['AREA_CD'];
+              breadAreaNm = mapInfo['AREA_NM'];
+            }
+            breadAreaItems.add(mapInfo['AREA_NM']);
+          }
+        }
+        if(breadAreaItems.isEmpty){
+          breadAreaCd = '';
+          breadAreaNm = '-- 선택 --';
+          breadAreaItems.add('-- 선택 --');
+        }
+        break;
+      case 'area':
+        for(Map mapInfo in breadAreaList){
+          if(value == mapInfo['AREA_NM']){
+            breadAreaCd = mapInfo['AREA_CD'];
+            breadAreaNm = mapInfo['AREA_NM'];
+          }
+        }
+        break;
+    }
   }
 }

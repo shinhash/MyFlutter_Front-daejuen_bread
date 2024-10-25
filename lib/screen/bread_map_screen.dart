@@ -45,12 +45,12 @@ class _BreadMapScreenState extends State<BreadMapScreen> {
 
             /// create to makerSet
             for (Map<String, dynamic> breadStore in areaBreadList) {
-              int id = int.parse(breadStore['STORE_ID'].toString());
-              double lat = double.parse(breadStore['LAT'].toString());
-              double lng = double.parse(breadStore['LNG'].toString());
+              int storeId = int.parse(breadStore['STORE_ID'].toString());
+              double storeLat = double.parse(breadStore['STORE_LAT'].toString());
+              double storeLng = double.parse(breadStore['STORE_LNG'].toString());
 
-              final locInfo = NLatLng(lat, lng);
-              final maker = NMarker(id: id.toString(), position: locInfo);
+              final locInfo = NLatLng(storeLat, storeLng);
+              final maker = NMarker(id: storeId.toString(), position: locInfo);
               breadMakerSet.add(maker);
             }
 
@@ -63,7 +63,7 @@ class _BreadMapScreenState extends State<BreadMapScreen> {
                 if(maker.info.id == breadStore['STORE_ID'].toString()){
                   final onMakerInfoWindow = NInfoWindow.onMarker(
                     id: maker.info.id,
-                    text: breadStore['COMPONY_NM'].toString(),
+                    text: breadStore['STORE_NM'].toString(),
                   );
                   maker.openInfoWindow(onMakerInfoWindow);
                 }
