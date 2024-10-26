@@ -97,16 +97,16 @@ class _HomeScreenState extends State<HomeScreen> {
                 Map sendData = {'regionCd': breadRegionCd, 'areaCd': breadAreaCd};
                 final breadStoreList = await BreadApi().breadService(url: '/bread/store/list', sendData: sendData);
                 logger.d('breadStoreList : ${breadStoreList}');
-                // Navigator.of(context).push(
-                //   MaterialPageRoute(
-                //     builder: (BuildContext context) {
-                //       return const BreadMapScreen();
-                //     },
-                //     settings: RouteSettings(
-                //       arguments: {'areaBreadList': breadStoreList},
-                //     ),
-                //   ),
-                // );
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (BuildContext context) {
+                      return const BreadMapScreen();
+                    },
+                    settings: RouteSettings(
+                      arguments: {'breadStoreList': breadStoreList},
+                    ),
+                  ),
+                );
               },
             ),
           ),
@@ -119,7 +119,9 @@ class _HomeScreenState extends State<HomeScreen> {
   regionAreaInitialize() async {
     breadRegionList = await BreadApi().breadService(url: '/bread/region/list', sendData: {});
     breadAreaList = await BreadApi().breadService(url: '/bread/area/list', sendData: {});
-    dropDownItemChange(dropDownMenu: 'region', value: '');
+    setState(() {
+      dropDownItemChange(dropDownMenu: 'region', value: '');
+    });
   }
 
   /// region, area info change function

@@ -20,7 +20,7 @@ class _BreadMapScreenState extends State<BreadMapScreen> {
   @override
   Widget build(BuildContext context) {
     final dynamic arguments = ModalRoute.of(context)?.settings.arguments;
-    final areaBreadList = arguments['areaBreadList'];
+    final breadStoreList = arguments['breadStoreList'];
 
     return Scaffold(
       appBar: AppBar(
@@ -44,7 +44,7 @@ class _BreadMapScreenState extends State<BreadMapScreen> {
             Set<NMarker> breadMakerSet = {};
 
             /// create to makerSet
-            for (Map<String, dynamic> breadStore in areaBreadList) {
+            for (Map<String, dynamic> breadStore in breadStoreList) {
               int storeId = int.parse(breadStore['STORE_ID'].toString());
               double storeLat = double.parse(breadStore['STORE_LAT'].toString());
               double storeLng = double.parse(breadStore['STORE_LNG'].toString());
@@ -58,7 +58,7 @@ class _BreadMapScreenState extends State<BreadMapScreen> {
             controller.addOverlayAll(breadMakerSet);
 
             /// makerSet setting to makerWindow
-            for(Map<String, dynamic> breadStore in areaBreadList){
+            for(Map<String, dynamic> breadStore in breadStoreList){
               breadMakerSet.forEach((maker){
                 if(maker.info.id == breadStore['STORE_ID'].toString()){
                   final onMakerInfoWindow = NInfoWindow.onMarker(
