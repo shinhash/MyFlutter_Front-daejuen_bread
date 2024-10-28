@@ -15,12 +15,14 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
 
   /// bread region info
+  late final Map<String, dynamic> breadRegionInfo;
   late final List<Map<String, dynamic>> breadRegionList;
   List<String> breadRegionItems = [];
   String breadRegionCd = '';
   String breadRegionNm = '';
 
   /// bread area info
+  late final Map<String, dynamic> breadAreaInfo;
   late final List<Map<String, dynamic>> breadAreaList;
   List<String> breadAreaItems = [];
   String breadAreaCd = '';
@@ -82,6 +84,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
 
+          if(breadAreaCd != '')
           Padding(
             padding: const EdgeInsets.symmetric(
               horizontal: 16.0,
@@ -95,15 +98,23 @@ class _HomeScreenState extends State<HomeScreen> {
               onPressed: () async {
                 /// spring boot bread api connection
                 Map sendData = {'regionCd': breadRegionCd, 'areaCd': breadAreaCd};
-                final breadStoreList = await BreadApi().breadService(url: '/bread/store/list', sendData: sendData);
-                logger.d('breadStoreList : ${breadStoreList}');
+                final breadAreaStoreInfo = await BreadApi().breadService(url: '/bread/store/list', sendData: sendData);
+
+                final breadAreaInfo = List<Map<String, dynamic>>.from(breadAreaStoreInfo['breadAreaInfo']);
+                print('breadAreaInfo : ${breadAreaInfo}');
+                final breadStoreInfo = List<Map<String, dynamic>>.from(breadAreaStoreInfo['breadStoreInfo']);
+                print('breadStoreInfo : ${breadStoreInfo}');
+
                 Navigator.of(context).push(
                   MaterialPageRoute(
                     builder: (BuildContext context) {
                       return const BreadMapScreen();
                     },
                     settings: RouteSettings(
-                      arguments: {'breadStoreList': breadStoreList},
+                      arguments: {
+                        'breadAreaInfo': breadAreaInfo,
+                        'breadStoreInfo': breadStoreInfo,
+                      },
                     ),
                   ),
                 );
@@ -117,8 +128,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
   /// 도시,지역 조회
   regionAreaInitialize() async {
-    breadRegionList = await BreadApi().breadService(url: '/bread/region/list', sendData: {});
-    breadAreaList = await BreadApi().breadService(url: '/bread/area/list', sendData: {});
+    breadRegionInfo = await BreadApi().breadService(url: '/bread/region/list', sendData: {});
+    breadAreaInfo = await BreadApi().breadService(url: '/bread/area/list', sendData: {});
+
+    breadRegionList = new List<Map<String, dynamic>>.from(breadRegionInfo['breadRegionInfo']);
+    breadAreaList = new List<Map<String, dynamic>>.from(breadAreaInfo['breadAreaInfo']);
     setState(() {
       dropDownItemChange(dropDownMenu: 'region', value: '');
     });

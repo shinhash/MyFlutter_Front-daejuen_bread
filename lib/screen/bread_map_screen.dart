@@ -4,7 +4,7 @@ import 'package:flutter_naver_map/flutter_naver_map.dart';
 import 'package:daejuen_bread/const/naver_map_const.dart';
 import 'package:logger/logger.dart';
 
-final myLocation = NLatLng(myLocLat, myLocLng);
+var areaLocation;
 var logger = Logger();
 
 class BreadMapScreen extends StatefulWidget {
@@ -20,7 +20,16 @@ class _BreadMapScreenState extends State<BreadMapScreen> {
   @override
   Widget build(BuildContext context) {
     final dynamic arguments = ModalRoute.of(context)?.settings.arguments;
-    final breadStoreList = arguments['breadStoreList'];
+    final breadAreaInfo = arguments['breadAreaInfo'];
+    final breadStoreInfo = arguments['breadStoreInfo'];
+
+    if((breadAreaInfo as List).length > 0){
+      final areaLat = double.parse(breadAreaInfo[0]['AREA_LAT']);
+      final areaLng = double.parse(breadAreaInfo[0]['AREA_LNG']);
+      areaLocation = NLatLng(areaLat, areaLng);
+    }else if((breadAreaInfo as List).length <= 0){
+      areaLocation = const NLatLng(defaultLocLat, defaultLocLng);
+    }
 
     return Scaffold(
       appBar: AppBar(
@@ -33,7 +42,7 @@ class _BreadMapScreenState extends State<BreadMapScreen> {
         child: NaverMap(
           options: NaverMapViewOptions(
             initialCameraPosition: NCameraPosition(
-              target: myLocation,
+              target: areaLocation,
               zoom: 14,
             ),
             indoorEnable: true,
@@ -44,7 +53,7 @@ class _BreadMapScreenState extends State<BreadMapScreen> {
             Set<NMarker> breadMakerSet = {};
 
             /// create to makerSet
-            for (Map<String, dynamic> breadStore in breadStoreList) {
+            for (Map<String, dynamic> breadStore in breadStoreInfo) {
               int storeId = int.parse(breadStore['STORE_ID'].toString());
               double storeLat = double.parse(breadStore['STORE_LAT'].toString());
               double storeLng = double.parse(breadStore['STORE_LNG'].toString());
@@ -58,7 +67,7 @@ class _BreadMapScreenState extends State<BreadMapScreen> {
             controller.addOverlayAll(breadMakerSet);
 
             /// makerSet setting to makerWindow
-            for(Map<String, dynamic> breadStore in breadStoreList){
+            for(Map<String, dynamic> breadStore in breadStoreInfo){
               breadMakerSet.forEach((maker){
                 if(maker.info.id == breadStore['STORE_ID'].toString()){
                   final onMakerInfoWindow = NInfoWindow.onMarker(
