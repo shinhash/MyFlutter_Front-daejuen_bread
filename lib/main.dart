@@ -20,7 +20,7 @@ Future<void> _naverMapInitialize() async {
   await NaverMapSdk.instance.initialize(
     clientId: clientId,
     onAuthFailed: (exception) {
-      print('********** naver map auth error : ${exception} **********');
+      logger.e('********** naver map auth error : ${exception} **********');
     },
   );
 }

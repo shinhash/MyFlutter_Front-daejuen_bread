@@ -4,7 +4,7 @@ import 'package:flutter_naver_map/flutter_naver_map.dart';
 import 'package:daejuen_bread/const/naver_map_const.dart';
 import 'package:logger/logger.dart';
 
-var areaLocation;
+dynamic areaLocation;
 var logger = Logger();
 
 class BreadMapScreen extends StatefulWidget {
@@ -23,11 +23,11 @@ class _BreadMapScreenState extends State<BreadMapScreen> {
     final breadAreaInfo = arguments['breadAreaInfo'];
     final breadStoreInfo = arguments['breadStoreInfo'];
 
-    if((breadAreaInfo as List).length > 0){
+    if((breadAreaInfo as List).isNotEmpty){
       final areaLat = double.parse(breadAreaInfo[0]['AREA_LAT']);
       final areaLng = double.parse(breadAreaInfo[0]['AREA_LNG']);
       areaLocation = NLatLng(areaLat, areaLng);
-    }else if((breadAreaInfo as List).length <= 0){
+    }else{
       areaLocation = const NLatLng(defaultLocLat, defaultLocLng);
     }
 
@@ -50,39 +50,53 @@ class _BreadMapScreenState extends State<BreadMapScreen> {
             consumeSymbolTapEvents: false,
           ),
           onMapReady: (NaverMapController controller) async {
-            Set<NMarker> breadMakerSet = {};
-
-            /// create to makerSet
-            for (Map<String, dynamic> breadStore in breadStoreInfo) {
-              int storeId = int.parse(breadStore['STORE_ID'].toString());
-              double storeLat = double.parse(breadStore['STORE_LAT'].toString());
-              double storeLng = double.parse(breadStore['STORE_LNG'].toString());
-
-              final locInfo = NLatLng(storeLat, storeLng);
-              final maker = NMarker(id: storeId.toString(), position: locInfo);
-              breadMakerSet.add(maker);
-            }
-
-            /// map controller insert to makerSet
-            controller.addOverlayAll(breadMakerSet);
-
-            /// makerSet setting to makerWindow
-            for(Map<String, dynamic> breadStore in breadStoreInfo){
-              breadMakerSet.forEach((maker){
-                if(maker.info.id == breadStore['STORE_ID'].toString()){
-                  final onMakerInfoWindow = NInfoWindow.onMarker(
-                    id: maker.info.id,
-                    text: breadStore['STORE_NM'].toString(),
-                  );
-                  maker.openInfoWindow(onMakerInfoWindow);
-                }
-              });
-            }
             naverMapController.complete(controller);
             logger.d('onMapReady');
+
+            showMaker(
+              controller: controller,
+              breadStoreInfo: breadStoreInfo,
+            );
           },
         ),
       ),
     );
   }
+
+  showMaker({required NaverMapController controller, required List<Map<String, dynamic>> breadStoreInfo}){
+    Set<NMarker> breadMakerSet = {};
+
+    /// create to makerSet
+    for (Map<String, dynamic> breadStore in breadStoreInfo) {
+      int storeId = int.parse(breadStore['STORE_ID'].toString());
+      double storeLat = double.parse(breadStore['STORE_LAT'].toString());
+      double storeLng = double.parse(breadStore['STORE_LNG'].toString());
+
+      final locInfo = NLatLng(storeLat, storeLng);
+      final maker = NMarker(id: storeId.toString(), position: locInfo);
+      breadMakerSet.add(maker);
+    }
+
+    /// map controller insert to makerSet
+    controller.addOverlayAll(breadMakerSet);
+
+    /// makerSet setting to makerWindow
+    for(Map<String, dynamic> breadStore in breadStoreInfo){
+      breadMakerSet.forEach((maker){
+        if(maker.info.id == breadStore['STORE_ID'].toString()){
+          final onMakerInfoWindow = NInfoWindow.onMarker(
+            id: maker.info.id,
+            text: breadStore['STORE_NM'].toString(),
+          );
+          maker.openInfoWindow(onMakerInfoWindow);
+        }
+      });
+    }
+  }
+
+  hideMaker({required NaverMapController controller}){
+    /// map controller insert to makerSet
+    controller.addOverlayAll({});
+  }
+
 }

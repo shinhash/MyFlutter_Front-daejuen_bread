@@ -50,7 +50,7 @@ class _HomeScreenState extends State<HomeScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              const Text('시 : '),
+              const Text('도시 '),
               DropdownButton(
                 value: breadRegionNm,
                 items: breadRegionItems.map((item) => DropdownMenuItem(value: item, child: Text(item))).toList(),
@@ -62,7 +62,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
 
 
-              const Text('구 : '),
+              const Text('지역 '),
               DropdownButton(
                 value: breadAreaNm,
                 items: breadAreaItems.map((item) => DropdownMenuItem(value: item, child: Text(item))).toList(),
@@ -101,9 +101,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 final breadAreaStoreInfo = await BreadApi().breadService(url: '/bread/store/list', sendData: sendData);
 
                 final breadAreaInfo = List<Map<String, dynamic>>.from(breadAreaStoreInfo['breadAreaInfo']);
-                print('breadAreaInfo : ${breadAreaInfo}');
                 final breadStoreInfo = List<Map<String, dynamic>>.from(breadAreaStoreInfo['breadStoreInfo']);
-                print('breadStoreInfo : ${breadStoreInfo}');
 
                 Navigator.of(context).push(
                   MaterialPageRoute(
